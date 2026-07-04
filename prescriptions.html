@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prescription Records | RIDDHI CHASHMA GHAR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body class="page-enter" data-page="prescriptions">
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="hamburger hidden-desktop" id="mobileMenuButton" aria-label="Toggle navigation">☰</button>
+      <div class="brand-inline">
+        <div class="brand-logo" aria-hidden="true">👓</div>
+        <div>
+          <h1>RIDDHI CHASHMA GHAR</h1>
+          <p>Prescription Records</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-clock" id="liveClock" aria-live="polite"></div>
+        <div class="profile-menu" tabindex="0">
+          <button class="profile-button" id="profileMenuButton" aria-haspopup="true" aria-expanded="false">Admin ▾</button>
+          <div class="dropdown-menu" id="profileMenu" aria-label="Profile options">
+            <button data-action="settings">Settings</button>
+            <button data-action="logout">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">Menu</div>
+      <ul class="nav-list">
+        <li><a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></li>
+        <li><a href="customers.html"><span class="nav-icon">👤</span> Customer Management</a></li>
+        <li><a href="prescriptions.html" class="active"><span class="nav-icon">📄</span> Prescription Records</a></li>
+        <li><a href="billing.html"><span class="nav-icon">🧾</span> Billing & Invoices</a></li>
+        <li><a href="analytics.html"><span class="nav-icon">📊</span> Analytics & Reports</a></li>
+        <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
+        <li><button class="nav-button" id="logoutButton"><span class="nav-icon">🚪</span> Logout</button></li>
+      </ul>
+    </nav>
+    <main class="main-content">
+      <section class="page-header spaced">
+        <div>
+          <h2>Prescription Records</h2>
+          <p>Create and manage prescription entries for customers with print-ready output.</p>
+        </div>
+        <button class="primary-btn" id="openPrescriptionForm">New Prescription</button>
+      </section>
+      <section class="search-panel">
+        <label for="prescriptionSearch" class="sr-only">Search prescriptions</label>
+        <div class="search-input-wrapper">
+          <input id="prescriptionSearch" type="search" placeholder="Search by customer or prescription ID..." aria-label="Search prescriptions" />
+          <span class="search-icon" aria-hidden="true">🔎</span>
+        </div>
+      </section>
+      <section class="table-panel">
+        <div class="table-wrap">
+          <table class="data-table" id="prescriptionTable" aria-label="Prescription records">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Prescription</th>
+                <th>Lens Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="prescriptionModal" role="dialog" aria-modal="true" aria-labelledby="prescriptionModalTitle">
+    <div class="modal-content large">
+      <header class="modal-header">
+        <h3 id="prescriptionModalTitle">New Prescription</h3>
+        <button class="icon-button" id="closePrescriptionModal" aria-label="Close modal">✕</button>
+      </header>
+      <form id="prescriptionForm" novalidate>
+        <div class="prescription-container">
+          <div class="form-section">
+            <h3>Customer Details</h3>
+            <div class="form-group">
+              <label for="customerSearch">Select Customer *</label>
+              <input type="text" id="customerSearch" placeholder="Search by name, mobile or customer ID..." class="search-input" autocomplete="off" />
+              <div id="customerDropdown" class="search-dropdown"></div>
+              <div id="selectedCustomer" class="selected-customer-info" style="display:none;">
+                <p><strong>Name:</strong> <span id="custName"></span></p>
+                <p><strong>Mobile:</strong> <span id="custMobile"></span></p>
+                <input type="hidden" id="selectedCustomerId" />
+              </div>
+              <span class="field-error" id="prescriptionCustomerError" role="alert"></span>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prescriptionDate">Prescription Date</label>
+                <input id="prescriptionDate" type="date" required aria-required="true" />
+              </div>
+              <div class="form-group">
+                <label for="doctorName">Doctor Name (Optional)</label>
+                <input id="doctorName" type="text" placeholder="Dr. Name" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Vision Test Results</h3>
+            <div class="vision-section">
+              <h4>Distance Vision (DV) / Far Vision</h4>
+              <div class="eyes-grid">
+                <div class="eye-column">
+                  <h5>Right Eye (OD)</h5>
+                  <div class="form-group">
+                    <label for="od_sph_dv">SPH (Sphere)</label>
+                    <select id="od_sph_dv" class="prescription-input"></select>
+                    <small>Minus (-) for Myopia, Plus (+) for Hyperopia</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="od_cyl_dv">CYL (Cylinder)</label>
+                    <select id="od_cyl_dv" class="prescription-input"></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="od_axis_dv">AXIS</label>
+                    <select id="od_axis_dv" class="prescription-input"></select>
+                    <small>Required when CYL is specified</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="od_va_dv">Visual Acuity (VA)</label>
+                    <input type="text" id="od_va_dv" placeholder="6/6 or 20/20" class="prescription-input" />
+                  </div>
+                </div>
+                <div class="eye-column">
+                  <h5>Left Eye (OS)</h5>
+                  <div class="form-group">
+                    <label for="os_sph_dv">SPH (Sphere)</label>
+                    <select id="os_sph_dv" class="prescription-input"></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="os_cyl_dv">CYL (Cylinder)</label>
+                    <select id="os_cyl_dv" class="prescription-input"></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="os_axis_dv">AXIS</label>
+                    <select id="os_axis_dv" class="prescription-input"></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="os_va_dv">Visual Acuity (VA)</label>
+                    <input type="text" id="os_va_dv" placeholder="6/6 or 20/20" class="prescription-input" />
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="secondary-btn" id="copyRightToLeft">Copy Right to Left</button>
+            </div>
+
+            <div class="vision-section" id="nearVisionSection" style="display:none;">
+              <h4>Near Vision (NV) / Reading Addition</h4>
+              <div class="eyes-grid">
+                <div class="eye-column">
+                  <h5>Right Eye (OD)</h5>
+                  <div class="form-group">
+                    <label for="od_add">ADD (Addition Power)</label>
+                    <select id="od_add" class="prescription-input"></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="od_va_nv">Near VA</label>
+                    <input type="text" id="od_va_nv" placeholder="N6, N8" class="prescription-input" />
+                  </div>
+                </div>
+                <div class="eye-column">
+                  <h5>Left Eye (OS)</h5>
+                  <div class="form-group">
+                    <label for="os_add">ADD (Addition Power)</label>
+                    <select id="os_add" class="prescription-input"></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="os_va_nv">Near VA</label>
+                    <input type="text" id="os_va_nv" placeholder="N6, N8" class="prescription-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Pupillary Distance (PD)</h3>
+            <div class="form-group">
+              <label for="pdType">PD Type</label>
+              <select id="pdType" class="prescription-input">
+                <option value="single">Single PD (Binocular)</option>
+                <option value="dual">Dual PD (Monocular)</option>
+              </select>
+            </div>
+            <div id="singlePDSection">
+              <div class="form-group">
+                <label for="pd_single">PD (mm)</label>
+                <input type="number" id="pd_single" min="50" max="75" step="0.5" placeholder="63" class="prescription-input" />
+              </div>
+            </div>
+            <div id="dualPDSection" style="display:none;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="pd_right">Right PD (mm)</label>
+                  <input type="number" id="pd_right" min="25" max="40" step="0.5" placeholder="31.5" class="prescription-input" />
+                </div>
+                <div class="form-group">
+                  <label for="pd_left">Left PD (mm)</label>
+                  <input type="number" id="pd_left" min="25" max="40" step="0.5" placeholder="31.5" class="prescription-input" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Lens Type & Specifications</h3>
+            <div class="form-group">
+              <label for="lensType">Lens Type *</label>
+              <select id="lensType" class="prescription-input" required>
+                <option value="">Select Lens Type</option>
+                <option value="Single Vision">Single Vision</option>
+                <option value="Bifocal">Bifocal</option>
+                <option value="Progressive">Progressive / Multifocal</option>
+                <option value="Reading Only">Reading Glasses Only</option>
+                <option value="Computer Glasses">Computer / Intermediate Glasses</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="lensMaterial">Lens Material</label>
+                <select id="lensMaterial" class="prescription-input">
+                  <option value="">Select Material</option>
+                  <option value="CR-39 (Plastic)">CR-39 (Plastic)</option>
+                  <option value="Polycarbonate">Polycarbonate</option>
+                  <option value="High Index 1.60">High Index 1.60</option>
+                  <option value="High Index 1.67">High Index 1.67</option>
+                  <option value="Trivex">Trivex</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="lensIndex">Lens Index</label>
+                <select id="lensIndex" class="prescription-input">
+                  <option value="1.50">1.50 (Standard)</option>
+                  <option value="1.56">1.56 (Mid Index)</option>
+                  <option value="1.60">1.60 (Thin)</option>
+                  <option value="1.67">1.67 (Extra Thin)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Lens Coatings & Special Features</h3>
+            <div class="coatings-grid">
+              <label class="coating-checkbox"><input type="checkbox" id="coating_ar" value="Anti-Reflective" /> <span>Anti-Reflective (AR)</span></label>
+              <label class="coating-checkbox"><input type="checkbox" id="coating_bluecut" value="Blue Cut" /> <span>Blue Cut / Blue Light Filter</span></label>
+              <label class="coating-checkbox"><input type="checkbox" id="coating_photochromic" value="Photochromic" /> <span>Photochromic / Transition</span></label>
+              <label class="coating-checkbox"><input type="checkbox" id="coating_uv" value="UV Protection" /> <span>UV 400 Protection</span></label>
+              <label class="coating-checkbox"><input type="checkbox" id="coating_scratch" value="Scratch Resistant" /> <span>Scratch Resistant</span></label>
+              <label class="coating-checkbox"><input type="checkbox" id="coating_hydrophobic" value="Hydrophobic" /> <span>Hydrophobic / Oleophobic</span></label>
+              <label class="coating-checkbox"><input type="checkbox" id="coating_polarized" value="Polarized" /> <span>Polarized</span></label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Lens Brand & Tint</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="lensBrand">Lens Brand</label>
+                <select id="lensBrand" class="prescription-input">
+                  <option value="">Select Brand</option>
+                  <option value="Essilor">Essilor</option>
+                  <option value="Zeiss">Zeiss</option>
+                  <option value="Hoya">Hoya</option>
+                  <option value="Crizal">Crizal</option>
+                  <option value="Indo">Indo</option>
+                  <option value="Custom/Other">Custom / Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="lensColor">Lens Color / Tint</label>
+                <select id="lensColor" class="prescription-input">
+                  <option value="Clear">Clear</option>
+                  <option value="Grey">Grey</option>
+                  <option value="Brown">Brown</option>
+                  <option value="Green">Green</option>
+                  <option value="Blue">Blue</option>
+                  <option value="Gradient">Gradient</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Additional Information</h3>
+            <div class="form-group">
+              <label for="frameType">Frame Type</label>
+              <select id="frameType" class="prescription-input">
+                <option value="">Not Selected</option>
+                <option value="Full Rim">Full Rim</option>
+                <option value="Half Rim">Half Rim / Semi Rimless</option>
+                <option value="Rimless">Rimless</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prescriptionNotes">Special Instructions / Notes</label>
+              <textarea id="prescriptionNotes" rows="3" placeholder="Any special requirements, patient complaints, frame preferences, etc." class="prescription-input"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary-btn" id="cancelPrescriptionForm">Cancel</button>
+          <button type="submit" class="primary-btn">
+            <span class="button-text">Save Prescription</span>
+            <span class="loader hidden" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="prescriptionViewModal" role="dialog" aria-modal="true" aria-labelledby="prescriptionViewTitle">
+    <div class="modal-content large">
+      <header class="modal-header">
+        <h3 id="prescriptionViewTitle">Prescription Details</h3>
+        <button class="icon-button" id="closePrescriptionView" aria-label="Close modal">✕</button>
+      </header>
+      <div id="prescriptionViewBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" id="closePrescriptionViewButton">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  <script src="js/utils.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/prescriptions.js" defer></script>
+</body>
+</html>

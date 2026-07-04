@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings | RIDDHI CHASHMA GHAR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body class="page-enter" data-page="settings">
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="hamburger hidden-desktop" id="mobileMenuButton" aria-label="Toggle navigation">☰</button>
+      <div class="brand-inline">
+        <div class="brand-logo" aria-hidden="true">👓</div>
+        <div>
+          <h1>RIDDHI CHASHMA GHAR</h1>
+          <p>Settings</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-clock" id="liveClock" aria-live="polite"></div>
+        <div class="profile-menu" tabindex="0">
+          <button class="profile-button" id="profileMenuButton" aria-haspopup="true" aria-expanded="false">Admin ▾</button>
+          <div class="dropdown-menu" id="profileMenu" aria-label="Profile options">
+            <button data-action="settings">Settings</button>
+            <button data-action="logout">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">Menu</div>
+      <ul class="nav-list">
+        <li><a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></li>
+        <li><a href="customers.html"><span class="nav-icon">👤</span> Customer Management</a></li>
+        <li><a href="prescriptions.html"><span class="nav-icon">📄</span> Prescription Records</a></li>
+        <li><a href="billing.html"><span class="nav-icon">🧾</span> Billing & Invoices</a></li>
+        <li><a href="analytics.html"><span class="nav-icon">📊</span> Analytics & Reports</a></li>
+        <li><a href="settings.html" class="active"><span class="nav-icon">⚙️</span> Settings</a></li>
+        <li><button class="nav-button" id="logoutButton"><span class="nav-icon">🚪</span> Logout</button></li>
+      </ul>
+    </nav>
+    <main class="main-content">
+      <section class="page-header">
+        <div>
+          <h2>Settings</h2>
+          <p>Configure shop details, account, invoices, notifications and data management.</p>
+        </div>
+      </section>
+      <section class="tabs-panel">
+        <nav class="tabs" id="settingsTabs" aria-label="Settings tabs">
+          <button class="tab-button active" data-tab="shopDetails">Shop Details</button>
+          <button class="tab-button" data-tab="adminAccount">Admin Account</button>
+          <button class="tab-button" data-tab="invoiceSettings">Invoice Settings</button>
+          <button class="tab-button" data-tab="notifications">Notifications</button>
+          <button class="tab-button" data-tab="dataManagement">Data Management</button>
+          <button class="tab-button" data-tab="uiPreferences">UI Preferences</button>
+        </nav>
+        <div class="tab-content active" id="shopDetails">
+          <form id="shopDetailsForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="shopName">Shop Name</label>
+                <input id="shopName" type="text" required aria-required="true" />
+              </div>
+              <div class="form-group full-width">
+                <label for="shopAddress">Address</label>
+                <textarea id="shopAddress" rows="3" required aria-required="true"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="shopContact">Contact Number</label>
+                <input id="shopContact" type="tel" placeholder="XXXXXXXXXX" />
+              </div>
+              <div class="form-group">
+                <label for="shopEmail">Email</label>
+                <input id="shopEmail" type="email" />
+              </div>
+              <div class="form-group">
+                <label for="shopGst">GST Number</label>
+                <input id="shopGst" type="text" />
+              </div>
+              <div class="form-group full-width">
+                <label for="shopLogo">Upload Logo</label>
+                <input id="shopLogo" type="file" accept="image/*" />
+                <div class="logo-preview" id="logoPreview" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="primary-btn">Save Changes</button>
+            </div>
+          </form>
+        </div>
+        <div class="tab-content" id="adminAccount">
+          <form id="adminAccountForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="currentUsername">Current Username</label>
+                <input id="currentUsername" type="text" disabled />
+              </div>
+              <div class="form-group full-width">
+                <label for="newUsername">New Username</label>
+                <input id="newUsername" type="text" />
+              </div>
+              <div class="form-group full-width">
+                <label for="currentPassword">Current Password</label>
+                <input id="currentPassword" type="password" />
+              </div>
+              <div class="form-group full-width">
+                <label for="newPassword">New Password</label>
+                <input id="newPassword" type="password" />
+                <div class="password-strength" id="passwordStrength">Strength: N/A</div>
+              </div>
+              <div class="form-group full-width">
+                <label for="confirmPassword">Confirm Password</label>
+                <input id="confirmPassword" type="password" />
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="primary-btn">Update Account</button>
+            </div>
+          </form>
+          <section class="panel-card">
+            <h3>Auto-logout Settings</h3>
+            <div class="form-group toggle-group">
+              <label class="switch"><input id="logoutToggle" type="checkbox" /><span class="slider"></span></label>
+              <span>Enable Auto-logout</span>
+            </div>
+            <div class="form-group">
+              <label for="sessionTimeout">Session Timeout</label>
+              <select id="sessionTimeout">
+                <option value="15">15 Minutes</option>
+                <option value="30" selected>30 Minutes</option>
+                <option value="60">60 Minutes</option>
+              </select>
+            </div>
+          </section>
+        </div>
+        <div class="tab-content" id="invoiceSettings">
+          <form id="invoiceSettingsForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="invoicePrefix">Invoice Prefix</label>
+                <input id="invoicePrefix" type="text" />
+              </div>
+              <div class="form-group">
+                <label for="invoiceStartNumber">Starting Invoice Number</label>
+                <input id="invoiceStartNumber" type="number" min="1" />
+              </div>
+              <div class="form-group">
+                <label for="defaultGstRate">Default GST Rate</label>
+                <select id="defaultGstRate">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                  <option value="18">18%</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label for="termsConditions">Terms & Conditions</label>
+                <textarea id="termsConditions" rows="3"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label for="invoiceFooter">Invoice Footer Text</label>
+                <input id="invoiceFooter" type="text" />
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="primary-btn">Save Invoice Settings</button>
+            </div>
+          </form>
+        </div>
+        <div class="tab-content" id="notifications">
+          <form id="notificationSettingsForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group toggle-group full-width">
+                <label class="switch"><input id="reminderToggle" type="checkbox" /><span class="slider"></span></label>
+                <span>Enable 1-Year Reminder</span>
+              </div>
+              <div class="form-group full-width">
+                <label for="reminderTemplate">Reminder Message Template</label>
+                <textarea id="reminderTemplate" rows="3"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label for="whatsappNumber">WhatsApp Number</label>
+                <input id="whatsappNumber" type="tel" placeholder="XXXXXXXXXX" />
+              </div>
+              <div class="form-group full-width">
+                <button type="button" class="secondary-btn" id="testReminder">Send Test Reminder</button>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="primary-btn">Save Notifications</button>
+            </div>
+          </form>
+        </div>
+        <div class="tab-content" id="dataManagement">
+          <div class="panel-card">
+            <button class="secondary-btn" id="backupData">Backup Database</button>
+            <button class="secondary-btn" id="restoreData">Restore Database</button>
+            <input id="restoreInput" type="file" accept="application/json" hidden />
+          </div>
+          <div class="panel-card">
+            <button class="secondary-btn" id="exportCustomerCsv">Export Customer List</button>
+            <button class="secondary-btn" id="exportInvoiceCsv">Export Invoice List</button>
+          </div>
+          <div class="panel-card danger-panel">
+            <h3>Clear All Data</h3>
+            <p>This will remove all application data including customers, prescriptions, invoices and settings.</p>
+            <button class="danger-btn" id="clearDataButton">Clear All Data</button>
+          </div>
+        </div>
+        <div class="tab-content" id="uiPreferences">
+          <form id="uiPreferencesForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group toggle-group full-width">
+                <label class="switch"><input id="themeToggle" type="checkbox" /><span class="slider"></span></label>
+                <span>Dark Mode</span>
+              </div>
+              <div class="form-group">
+                <label for="primaryColorPicker">Primary Color</label>
+                <input id="primaryColorPicker" type="color" value="#2563eb" />
+              </div>
+              <div class="form-group">
+                <label>Font Size</label>
+                <select id="fontSizeSelector">
+                  <option value="small">Small</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="large">Large</option>
+                </select>
+              </div>
+              <div class="form-group toggle-group full-width">
+                <label class="switch"><input id="animationsToggle" type="checkbox" /><span class="slider"></span></label>
+                <span>Enable Animations</span>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="primary-btn">Save Preferences</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-content compact">
+      <header class="modal-header">
+        <h3 id="confirmTitle">Confirm Action</h3>
+        <button class="icon-button" id="closeConfirmModal" aria-label="Close modal">✕</button>
+      </header>
+      <p id="confirmMessage"></p>
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" id="cancelConfirm">Cancel</button>
+        <button type="button" class="danger-btn" id="confirmAction">Confirm</button>
+      </div>
+    </div>
+  </div>
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  <script src="js/utils.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/notifications.js" defer></script>
+  <script src="js/settings.js" defer></script>
+</body>
+</html>

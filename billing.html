@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billing & Invoices | RIDDHI CHASHMA GHAR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body class="page-enter" data-page="billing">
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="hamburger hidden-desktop" id="mobileMenuButton" aria-label="Toggle navigation">☰</button>
+      <div class="brand-inline">
+        <div class="brand-logo" aria-hidden="true">👓</div>
+        <div>
+          <h1>RIDDHI CHASHMA GHAR</h1>
+          <p>Billing & Invoices</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-clock" id="liveClock" aria-live="polite"></div>
+        <div class="profile-menu" tabindex="0">
+          <button class="profile-button" id="profileMenuButton" aria-haspopup="true" aria-expanded="false">Admin ▾</button>
+          <div class="dropdown-menu" id="profileMenu" aria-label="Profile options">
+            <button data-action="settings">Settings</button>
+            <button data-action="logout">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">Menu</div>
+      <ul class="nav-list">
+        <li><a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></li>
+        <li><a href="customers.html"><span class="nav-icon">👤</span> Customer Management</a></li>
+        <li><a href="prescriptions.html"><span class="nav-icon">📄</span> Prescription Records</a></li>
+        <li><a href="billing.html" class="active"><span class="nav-icon">🧾</span> Billing & Invoices</a></li>
+        <li><a href="analytics.html"><span class="nav-icon">📊</span> Analytics & Reports</a></li>
+        <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
+        <li><button class="nav-button" id="logoutButton"><span class="nav-icon">🚪</span> Logout</button></li>
+      </ul>
+    </nav>
+    <main class="main-content">
+      <section class="page-header spaced">
+        <div>
+          <h2>Billing & Invoices</h2>
+          <p>Generate invoices with GST, discounts, payment tracking and printable receipts.</p>
+        </div>
+        <button class="primary-btn" id="openInvoiceForm">Create New Invoice</button>
+      </section>
+      <section class="table-panel">
+        <div class="filter-panel">
+          <div class="filter-row">
+            <select id="invoiceStatusFilter" aria-label="Filter invoices by status">
+              <option value="all">All Statuses</option>
+              <option value="Paid">Paid</option>
+              <option value="Unpaid">Unpaid</option>
+              <option value="Partially Paid">Partially Paid</option>
+            </select>
+            <input type="date" id="invoiceFromDate" aria-label="From date" />
+            <input type="date" id="invoiceToDate" aria-label="To date" />
+            <button class="secondary-btn" id="applyInvoiceFilter">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="invoiceTable" aria-label="Invoice records">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="invoiceModal" role="dialog" aria-modal="true" aria-labelledby="invoiceModalTitle">
+    <div class="modal-content extra-large">
+      <header class="modal-header">
+        <h3 id="invoiceModalTitle">Create New Invoice</h3>
+        <button class="icon-button" id="closeInvoiceModal" aria-label="Close modal">✕</button>
+      </header>
+      <form id="invoiceForm" novalidate>
+        <div class="invoice-container">
+          <div class="form-section">
+            <h3>Customer Information</h3>
+            <div class="form-group">
+              <label for="invoiceCustomerSearch">Search Customer *</label>
+              <input type="text" id="invoiceCustomerSearch" placeholder="Type name, mobile or ID..." class="search-input" autocomplete="off" />
+              <div id="invoiceCustomerDropdown" class="search-dropdown"></div>
+              <span class="field-error" id="invoiceCustomerError" role="alert"></span>
+            </div>
+            <div id="invoiceSelectedCustomer" class="customer-card" style="display:none;">
+              <div class="customer-info">
+                <h4 id="invCustName"></h4>
+                <p><strong>Mobile:</strong> <span id="invCustMobile"></span></p>
+                <p><strong>Address:</strong> <span id="invCustLocation"></span></p>
+                <input type="hidden" id="invoiceCustomerId" />
+              </div>
+              <button type="button" class="secondary-btn small" id="changeCustomerButton">Change Customer</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="invoiceNumber">Invoice Number</label>
+                <input id="invoiceNumber" type="text" readonly />
+              </div>
+              <div class="form-group">
+                <label for="invoiceDate">Invoice Date</label>
+                <input id="invoiceDate" type="date" required aria-required="true" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Invoice Items</h3>
+            <div class="items-header">
+              <button type="button" class="secondary-btn" id="addInvoiceItem">+ Add Item</button>
+            </div>
+            <div id="itemsContainer" class="items-container"></div>
+          </div>
+
+          <div class="totals-section">
+            <div class="totals-card">
+              <div class="total-row">
+                <span>Subtotal:</span>
+                <span id="subtotalAmount">₹0.00</span>
+              </div>
+              <div class="total-row total-final">
+                <span><strong>TOTAL AMOUNT:</strong></span>
+                <span id="totalAmount"><strong>₹0.00</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Payment Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="paymentMethod">Payment Method</label>
+                <select id="paymentMethod" class="prescription-input">
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI / Online</option>
+                  <option value="Card">Card</option>
+                  <option value="Partial">Partial Payment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="amountPaid">Amount Paid (₹)</label>
+                <input id="amountPaid" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div class="form-group">
+                <label for="balanceDue">Balance Due (₹)</label>
+                <input id="balanceDue" type="number" readonly />
+              </div>
+            </div>
+            <div class="payment-status" id="paymentStatus"></div>
+          </div>
+        </div>
+
+        <div class="modal-actions wrap">
+          <button type="button" class="secondary-btn" id="resetInvoiceForm">Reset</button>
+          <button type="button" class="secondary-btn" id="printInvoiceButton">Print</button>
+          <button type="button" class="secondary-btn" id="pdfInvoiceButton">Generate PDF</button>
+          <button type="button" class="secondary-btn" id="shareInvoiceButton">Share on WhatsApp</button>
+          <button type="submit" class="primary-btn">
+            <span class="button-text">Save Invoice</span>
+            <span class="loader hidden" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="invoiceViewModal" role="dialog" aria-modal="true" aria-labelledby="invoiceViewTitle">
+    <div class="modal-content large">
+      <header class="modal-header">
+        <h3 id="invoiceViewTitle">Invoice Details</h3>
+        <button class="icon-button" id="closeInvoiceView" aria-label="Close modal">✕</button>
+      </header>
+      <div id="invoiceViewBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" id="closeInvoiceViewButton">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  <script src="js/utils.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/billing.js" defer></script>
+</body>
+</html>
