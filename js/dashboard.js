@@ -362,9 +362,23 @@ const initializeDashboardQuickOrder = () => {
       invoices.push(invoice);
     }
 
-    saveData(STORAGE_KEYS.customers, customers);
-    saveData(STORAGE_KEYS.prescriptions, prescriptions);
-    saveData(STORAGE_KEYS.invoices, invoices);
+    if (!saveData(STORAGE_KEYS.customers, customers)) {
+      setFormStatus('Customer could not be saved. Check browser storage and try again.', 'error');
+      if (saveButton) saveButton.disabled = false;
+      return;
+    }
+    if (!saveData(STORAGE_KEYS.prescriptions, prescriptions)) {
+      setFormStatus('Customer was saved, but prescription data could not be saved.', 'error');
+      showToast('Entry was only partially saved. Check browser storage before retrying.', 'error');
+      if (saveButton) saveButton.disabled = false;
+      return;
+    }
+    if (!saveData(STORAGE_KEYS.invoices, invoices)) {
+      setFormStatus('Customer and prescription were saved, but invoice data could not be saved.', 'error');
+      showToast('Entry was only partially saved. Check browser storage before retrying.', 'error');
+      if (saveButton) saveButton.disabled = false;
+      return;
+    }
     trackActivity(`Entry saved for ${customer.name}.`);
 
     if (typeof fillDashboardSummary === 'function') {

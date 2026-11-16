@@ -68,8 +68,16 @@ const enableHeaderInteractions = () => {
   }
 
   if (mobileMenuButton && sidebar) {
+    mobileMenuButton.setAttribute('aria-expanded', String(sidebar.classList.contains('open')));
     mobileMenuButton.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
+      const isOpen = sidebar.classList.toggle('open');
+      mobileMenuButton.setAttribute('aria-expanded', String(isOpen));
+    });
+    sidebar.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        mobileMenuButton.setAttribute('aria-expanded', 'false');
+      });
     });
   }
 };

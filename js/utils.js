@@ -136,8 +136,14 @@ const generateId = (prefix, existingItems = []) => {
 const generateCustomerId = (existingCustomers = []) => {
   const now = new Date();
   const year = now.getFullYear();
-  const idNumber = String(existingCustomers.length + 1).padStart(3, '0');
-  return `CUST-${year}-${idNumber}`;
+  const idPrefix = `CUST-${year}-`;
+  const idPattern = new RegExp(`^CUST-${year}-(\\d+)$`);
+  const largestSequence = existingCustomers.reduce((largest, customer) => {
+    const match = String(customer.id || '').match(idPattern);
+    return match ? Math.max(largest, Number(match[1])) : largest;
+  }, 0);
+  const idNumber = String(largestSequence + 1).padStart(3, '0');
+  return `${idPrefix}${idNumber}`;
 };
 
 const getCustomerById = (id) => getData(STORAGE_KEYS.customers).find((customer) => customer.id === id);

@@ -216,7 +216,7 @@ const saveQuickCustomerAddition = () => {
     profileImage: ''
   };
 
-  saveData(STORAGE_KEYS.customers, [...customers, customer]);
+  if (!saveData(STORAGE_KEYS.customers, [...customers, customer])) return;
   selectPrescriptionCustomer(customer);
   if (nameInput) nameInput.value = '';
   if (mobileInput) mobileInput.value = '';

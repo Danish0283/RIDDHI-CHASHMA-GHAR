@@ -5,11 +5,18 @@ const customerState = {
   sortKey: 'name',
   sortDirection: 'asc',
   activeLetter: 'all',
-  filterMode: 'all'
+  filterMode: 'all',
+  searchQuery: ''
 };
 
 const loadCustomers = () => {
-  customerState.customers = getData(STORAGE_KEYS.customers) || [];
+  const customers = getData(STORAGE_KEYS.customers);
+  if (!Array.isArray(customers)) {
+    showToast('Customer data could not be loaded. Restore a valid backup and try again.', 'error');
+    customerState.customers = [];
+  } else {
+    customerState.customers = customers;
+  }
   applyCustomerFilters();
 };
 
@@ -32,6 +39,10 @@ const applyCustomerFilters = () => {
   if (customerState.filterMode === 'inactive') {
     list = list.filter((cust) => !cust.lastVisitDate || daysDifference(cust.lastVisitDate) >= 365);
   }
+  if (customerState.searchQuery) {
+    list = list.filter((cust) => [cust.name, cust.mobile, cust.id]
+      .some((value) => String(value || '').toLowerCase().includes(customerState.searchQuery)));
+  }
   if (customerState.activeLetter !== 'all') {
     list = list.filter((cust) => String(cust.name || '').charAt(0).toUpperCase() === customerState.activeLetter);
   }
@@ -51,6 +62,7 @@ const createAlphabetTabs = () => {
       const button = event.target.closest('button');
       if (!button) return;
       customerState.activeLetter = button.dataset.letter;
+      customerState.currentPage = 1;
       createAlphabetTabs();
       applyCustomerFilters();
     });
@@ -62,8 +74,19 @@ const renderCustomerTable = () => {
   const tbody = document.querySelector('#customerTable tbody');
   const label = document.getElementById('customerCountLabel');
   if (!tbody || !label) return;
+  const totalPages = Math.ceil(customerState.filtered.length / 20) || 1;
+  customerState.currentPage = Math.min(customerState.currentPage, totalPages);
   const start = (customerState.currentPage - 1) * 20;
   const pageItems = customerState.filtered.slice(start, start + 20);
+  if (!pageItems.length) {
+    const emptyMessage = customerState.customers.length
+      ? 'No customers match the selected search or filters.'
+      : 'No customers yet. Add your first customer to get started.';
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${emptyMessage}</td></tr>`;
+    label.textContent = 'Showing 0 customers';
+    renderPagination();
+    return;
+  }
   tbody.innerHTML = pageItems.map((customer) => {
     const safeCustomer = normalizeCustomerRecord(customer);
     const totalSpent = getCustomerInvoiceTotal(safeCustomer.id);
@@ -94,8 +117,18 @@ const renderPagination = () => {
   const totalPages = Math.ceil(customerState.filtered.length / 20) || 1;
   const buttons = [];
   buttons.push(`<button ${customerState.currentPage === 1 ? 'disabled' : ''} data-page="${customerState.currentPage - 1}">Previous</button>`);
-  for (let i = 1; i <= totalPages; i += 1) {
+  const firstPage = Math.max(1, customerState.currentPage - 2);
+  const lastPage = Math.min(totalPages, customerState.currentPage + 2);
+  if (firstPage > 1) {
+    buttons.push('<button data-page="1">1</button>');
+    if (firstPage > 2) buttons.push('<span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>');
+  }
+  for (let i = firstPage; i <= lastPage; i += 1) {
     buttons.push(`<button class="${customerState.currentPage === i ? 'active' : ''}" data-page="${i}">${i}</button>`);
+  }
+  if (lastPage < totalPages) {
+    if (lastPage < totalPages - 1) buttons.push('<span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>');
+    buttons.push(`<button data-page="${totalPages}">${totalPages}</button>`);
   }
   buttons.push(`<button ${customerState.currentPage === totalPages ? 'disabled' : ''} data-page="${customerState.currentPage + 1}">Next</button>`);
   pagination.innerHTML = buttons.join('');
@@ -296,11 +329,11 @@ const submitCustomerForm = (event) => {
   const existing = existingCustomers.find((cust) => cust.id === customerId);
   if (existing) {
     const updatedList = existingCustomers.map((cust) => (cust.id === customerId ? { ...cust, ...customer, visits: cust.visits, totalVisits: cust.totalVisits, lastVisitDate: cust.lastVisitDate, notes: cust.notes, profileImage: cust.profileImage } : cust));
-    saveData(STORAGE_KEYS.customers, updatedList);
+    if (!saveData(STORAGE_KEYS.customers, updatedList)) return;
     trackActivity(`Customer updated: ${customer.name}`);
     showToast('Customer updated successfully!', 'success');
   } else {
-    saveData(STORAGE_KEYS.customers, [...existingCustomers, customer]);
+    if (!saveData(STORAGE_KEYS.customers, [...existingCustomers, customer])) return;
     trackActivity(`Customer added: ${customer.name}`);
     showToast('Customer added successfully!', 'success');
   }
@@ -415,8 +448,10 @@ const initCustomerPage = () => {
 
   searchInput.addEventListener('input', debounce((event) => {
     const value = event.target.value.trim().toLowerCase();
+    customerState.searchQuery = value;
+    customerState.currentPage = 1;
+    applyCustomerFilters();
     if (!value) {
-      applyCustomerFilters();
       document.getElementById('searchSuggestions').innerHTML = '';
       return;
     }
@@ -439,6 +474,10 @@ const initCustomerPage = () => {
     customerState.filterMode = event.target.value;
     customerState.currentPage = 1;
     applyCustomerFilters();
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEYS.customers || event.key === null) loadCustomers();
   });
 
   exportButton.addEventListener('click', () => {
