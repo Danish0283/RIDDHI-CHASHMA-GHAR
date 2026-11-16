@@ -39,7 +39,6 @@
         <li><a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></li>
         <li><a href="customers.html" class="active"><span class="nav-icon">👤</span> Customer Management</a></li>
         <li><a href="prescriptions.html"><span class="nav-icon">📄</span> Prescription Records</a></li>
-        <li><a href="billing.html"><span class="nav-icon">🧾</span> Billing & Invoices</a></li>
         <li><a href="analytics.html"><span class="nav-icon">📊</span> Analytics & Reports</a></li>
         <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
         <li><button class="nav-button" id="logoutButton"><span class="nav-icon">🚪</span> Logout</button></li>
@@ -110,12 +109,12 @@
           </div>
           <div class="form-group">
             <label for="customerName">Full Name</label>
-            <input id="customerName" type="text" required aria-required="true" />
+            <input id="customerName" type="text" />
             <span class="field-error" id="customerNameError" role="alert"></span>
           </div>
           <div class="form-group">
             <label for="customerMobile">Mobile Number</label>
-            <input id="customerMobile" type="tel" maxlength="10" required aria-required="true" placeholder="XXXXXXXXXX" />
+            <input id="customerMobile" type="tel" maxlength="10" placeholder="XXXXXXXXXX" />
             <span class="field-error" id="customerMobileError" role="alert"></span>
           </div>
           <div class="form-group">
@@ -125,7 +124,7 @@
           </div>
           <div class="form-group full-width">
             <label for="customerLocation">Location / Address</label>
-            <textarea id="customerLocation" rows="3" required aria-required="true"></textarea>
+            <textarea id="customerLocation" rows="3"></textarea>
             <span class="field-error" id="customerLocationError" role="alert"></span>
           </div>
           <div class="form-group">
@@ -192,6 +191,7 @@
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
   <script src="js/utils.js" defer></script>
   <script src="js/storage.js" defer></script>
+  <script src="js/migration-core.js" defer></script>
   <script src="js/auth.js" defer></script>
   <script src="js/customers.js" defer></script>
 </body>

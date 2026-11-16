@@ -1,4 +1,21 @@
-const saveData = (key, data) => setLocalData(key, data);
+const notifyStorageUpdate = (key, data) => {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+
+  try {
+    window.dispatchEvent(new CustomEvent('data:updated', { detail: { key, data } }));
+    if (key === STORAGE_KEYS.customers) {
+      window.dispatchEvent(new CustomEvent('customers:updated', { detail: { customers: data } }));
+    }
+  } catch (error) {
+    // Ignore custom event issues in unsupported browser contexts.
+  }
+};
+
+const saveData = (key, data) => {
+  const saved = setLocalData(key, data);
+  if (saved) notifyStorageUpdate(key, data);
+  return saved;
+};
 const getData = (key) => getLocalData(key);
 const updateData = (key, callback) => {
   const data = getData(key) || [];
@@ -12,6 +29,7 @@ const deleteData = (key, predicate) => {
 };
 const exportBackup = () => {
   const payload = {
+    schema: getSchemaMeta(),
     customers: getData(STORAGE_KEYS.customers),
     prescriptions: getData(STORAGE_KEYS.prescriptions),
     invoices: getData(STORAGE_KEYS.invoices),
@@ -40,6 +58,7 @@ const importBackup = (file, onComplete) => {
         saveData(STORAGE_KEYS.appSettings, data.appSettings || getSettings());
         saveData(STORAGE_KEYS.activityLog, data.activityLog || []);
         saveData(STORAGE_KEYS.session, data.session || { isLoggedIn: false });
+        saveData(STORAGE_KEYS.schemaMeta, data.schema || getSchemaMeta());
         showToast('Backup restored successfully.', 'success');
         onComplete && onComplete();
       } else {

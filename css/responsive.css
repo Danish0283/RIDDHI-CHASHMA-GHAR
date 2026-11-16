@@ -30,6 +30,15 @@
     margin-left: 0;
   }
 
+  .dashboard-hero {
+    grid-template-columns: 1fr;
+    padding: 22px 18px;
+  }
+
+  .hero-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .summary-grid,
   .chart-grid,
   .dashboard-grid,
@@ -48,6 +57,132 @@
 }
 
 @media (max-width: 768px) {
+  .auth-card {
+    padding: 24px 18px;
+  }
+
+  .auth-brand h1 {
+    font-size: 1.7rem;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 12px 16px;
+  }
+
+  .brand-inline h1 {
+    font-size: 1.05rem;
+  }
+
+  .brand-inline p {
+    font-size: 0.72rem;
+  }
+
+  .topbar-right,
+  .page-header,
+  .filter-row,
+  .modal-actions,
+  .button-group,
+  .toggle-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .main-content {
+    padding: 16px;
+  }
+
+  .dashboard-hero {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-order-panel {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  .compact-grid,
+  .prescription-grid,
+  .eye-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-order-form .eye-panel {
+    padding: 14px;
+  }
+
+  .form-actions.mobile-stack {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .summary-card,
+  .panel-card,
+  .chart-card,
+  .table-panel,
+  .search-panel,
+  .filter-panel,
+  .tabs-panel {
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .summary-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .summary-grid {
+    gap: 14px;
+  }
+
+  .nav-list a,
+  .nav-list button.nav-button {
+    padding: 14px 16px;
+  }
+
+  .data-table th,
+  .data-table td,
+  .invoice-table th,
+  .invoice-table td {
+    padding: 12px 10px;
+    font-size: 0.9rem;
+  }
+
+  .search-input-wrapper input {
+    padding-right: 45px;
+  }
+
+  .form-grid,
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-btn,
+  .secondary-btn,
+  .info-btn,
+  .danger-btn {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .page-header h2,
+  .page-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .modal-content {
+    width: min(100%, 92vw);
+    padding: 18px 14px 16px;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
   .topbar {
     flex-wrap: wrap;
     height: auto;

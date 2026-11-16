@@ -13,8 +13,19 @@ const loadCustomers = () => {
   applyCustomerFilters();
 };
 
+const normalizeCustomerRecord = (customer = {}) => ({
+  ...customer,
+  name: customer.name && String(customer.name).trim() ? String(customer.name).trim() : 'Unnamed Customer',
+  mobile: customer.mobile ? String(customer.mobile).trim() : '',
+  location: customer.location ? String(customer.location).trim() : '',
+  email: customer.email ? String(customer.email).trim() : '',
+  alternateMobile: customer.alternateMobile ? String(customer.alternateMobile).trim() : '',
+  notes: customer.notes || '',
+  profileImage: customer.profileImage || ''
+});
+
 const applyCustomerFilters = () => {
-  let list = [...customerState.customers];
+  let list = [...customerState.customers].map(normalizeCustomerRecord);
   if (customerState.filterMode === 'recent') {
     list = list.filter((cust) => cust.lastVisitDate && daysDifference(cust.lastVisitDate) <= 30);
   }
@@ -22,7 +33,7 @@ const applyCustomerFilters = () => {
     list = list.filter((cust) => !cust.lastVisitDate || daysDifference(cust.lastVisitDate) >= 365);
   }
   if (customerState.activeLetter !== 'all') {
-    list = list.filter((cust) => cust.name.charAt(0).toUpperCase() === customerState.activeLetter);
+    list = list.filter((cust) => String(cust.name || '').charAt(0).toUpperCase() === customerState.activeLetter);
   }
   customerState.filtered = sortAlpha(list, customerState.sortKey, customerState.sortDirection);
   renderCustomerTable();
@@ -54,20 +65,21 @@ const renderCustomerTable = () => {
   const start = (customerState.currentPage - 1) * 20;
   const pageItems = customerState.filtered.slice(start, start + 20);
   tbody.innerHTML = pageItems.map((customer) => {
-    const totalSpent = getCustomerInvoiceTotal(customer.id);
+    const safeCustomer = normalizeCustomerRecord(customer);
+    const totalSpent = getCustomerInvoiceTotal(safeCustomer.id);
     return `
       <tr>
-        <td>${customer.id}</td>
-        <td>${customer.name}</td>
-        <td>${formatPhone(customer.mobile)}</td>
-        <td>${customer.location}</td>
-        <td>${formatCurrency(totalSpent || customer.totalSpent || 0)}</td>
-        <td>${customer.lastVisitDate ? formatDate(customer.lastVisitDate) : '—'}</td>
-        <td>${customer.totalVisits || 0}</td>
+        <td>${safeCustomer.id}</td>
+        <td>${safeCustomer.name}</td>
+        <td>${safeCustomer.mobile ? formatPhone(safeCustomer.mobile) : 'No mobile'}</td>
+        <td>${safeCustomer.location || 'No address'}</td>
+        <td>${formatCurrency(totalSpent || safeCustomer.totalSpent || 0)}</td>
+        <td>${safeCustomer.lastVisitDate ? formatDate(safeCustomer.lastVisitDate) : '—'}</td>
+        <td>${safeCustomer.totalVisits || 0}</td>
         <td>
-          <button class="secondary-btn small" data-action="view" data-id="${customer.id}">View</button>
-          <button class="info-btn small" data-action="edit" data-id="${customer.id}">Edit</button>
-          <button class="danger-btn small" data-action="delete" data-id="${customer.id}">Delete</button>
+          <button class="secondary-btn small" data-action="view" data-id="${safeCustomer.id}">View</button>
+          <button class="info-btn small" data-action="edit" data-id="${safeCustomer.id}">Edit</button>
+          <button class="danger-btn small" data-action="delete" data-id="${safeCustomer.id}">Delete</button>
         </td>
       </tr>
     `;
@@ -236,17 +248,18 @@ const validateCustomerForm = () => {
   const emailInput = document.getElementById('customerEmail');
   const customerId = document.getElementById('customerId').value;
   const errors = {};
-  if (!nameInput.value.trim()) {
-    errors.name = 'This field is required';
+
+  if (nameInput.value.trim() && !String(nameInput.value.trim()).match(/^[a-zA-Z\s.-]+$/)) {
+    errors.name = 'Name contains invalid characters';
   }
-  if (!validateMobile(mobileInput.value.trim())) {
+  if (mobileInput.value.trim() && !validateMobile(mobileInput.value.trim())) {
     errors.mobile = 'Mobile must be 10 digits';
-  } else {
-    const duplicate = customerState.customers.find((cust) => cust.mobile === mobileInput.value.trim() && cust.id !== customerId);
+  } else if (mobileInput.value.trim()) {
+    const duplicate = customerState.customers.find((cust) => String(cust.mobile || '').trim() === mobileInput.value.trim() && cust.id !== customerId);
     if (duplicate) errors.mobile = 'Customer with this mobile already exists';
   }
-  if (!locationInput.value.trim()) {
-    errors.location = 'This field is required';
+  if (locationInput.value.trim() && locationInput.value.trim().length < 2) {
+    errors.location = 'Address is too short';
   }
   if (emailInput.value.trim() && !validateEmail(emailInput.value.trim())) {
     errors.email = 'Invalid email format';
@@ -263,9 +276,10 @@ const submitCustomerForm = (event) => {
   const customerId = document.getElementById('customerId').value;
   if (!validateCustomerForm()) return;
   const existingCustomers = customerState.customers;
+  const nameValue = document.getElementById('customerName').value.trim();
   const customer = {
     id: customerId,
-    name: document.getElementById('customerName').value.trim(),
+    name: nameValue || 'Unnamed Customer',
     mobile: document.getElementById('customerMobile').value.trim(),
     alternateMobile: document.getElementById('customerAlternate').value.trim(),
     location: document.getElementById('customerLocation').value.trim(),
@@ -298,19 +312,20 @@ const renderCustomerProfileModal = (customer) => {
   const modal = document.getElementById('customerViewModal');
   const body = document.getElementById('customerViewBody');
   if (!modal || !body || !customer) return;
-  const totalSpent = getCustomerInvoiceTotal(customer.id);
+  const normalizedCustomer = normalizeCustomerRecord(customer);
+  const totalSpent = getCustomerInvoiceTotal(normalizedCustomer.id);
   body.innerHTML = `
     <div class="panel-card">
-      <h4>${customer.name}</h4>
-      <p><strong>ID:</strong> ${customer.id}</p>
-      <p><strong>Mobile:</strong> ${formatPhone(customer.mobile)}</p>
-      <p><strong>Alternate Mobile:</strong> ${formatPhone(customer.alternateMobile || '')}</p>
-      <p><strong>Location:</strong> ${customer.location}</p>
-      <p><strong>Email:</strong> ${customer.email || 'N/A'}</p>
-      <p><strong>Total Visits:</strong> ${customer.totalVisits || 0}</p>
-      <p><strong>Total Spent:</strong> ${formatCurrency(totalSpent || customer.totalSpent || 0)}</p>
-      <p><strong>Last Visit:</strong> ${customer.lastVisitDate ? formatDate(customer.lastVisitDate) : 'N/A'}</p>
-      <p><strong>Registration Date:</strong> ${customer.registrationDate}</p>
+      <h4>${normalizedCustomer.name}</h4>
+      <p><strong>ID:</strong> ${normalizedCustomer.id}</p>
+      <p><strong>Mobile:</strong> ${normalizedCustomer.mobile ? formatPhone(normalizedCustomer.mobile) : 'No mobile'}</p>
+      <p><strong>Alternate Mobile:</strong> ${normalizedCustomer.alternateMobile ? formatPhone(normalizedCustomer.alternateMobile) : 'No alternate mobile'}</p>
+      <p><strong>Location:</strong> ${normalizedCustomer.location || 'No address'}</p>
+      <p><strong>Email:</strong> ${normalizedCustomer.email || 'N/A'}</p>
+      <p><strong>Total Visits:</strong> ${normalizedCustomer.totalVisits || 0}</p>
+      <p><strong>Total Spent:</strong> ${formatCurrency(totalSpent || normalizedCustomer.totalSpent || 0)}</p>
+      <p><strong>Last Visit:</strong> ${normalizedCustomer.lastVisitDate ? formatDate(normalizedCustomer.lastVisitDate) : 'N/A'}</p>
+      <p><strong>Registration Date:</strong> ${normalizedCustomer.registrationDate || 'N/A'}</p>
     </div>
     <div class="panel-card">
       <div class="profile-tabs" role="tablist">
@@ -323,6 +338,11 @@ const renderCustomerProfileModal = (customer) => {
       </div>
     </div>
   `;
+  const profileButtons = body.querySelectorAll('.profile-tabs .tab-button');
+  profileButtons.forEach((tabButton) => {
+    tabButton.dataset.customerId = customer.id;
+  });
+
   if (!body.dataset.listenerAttached) {
     body.addEventListener('click', (event) => {
       const button = event.target.closest('button[data-tab]');
@@ -330,19 +350,19 @@ const renderCustomerProfileModal = (customer) => {
       const tab = button.dataset.tab;
       const customerId = button.dataset.customerId;
       const content = document.getElementById('customerProfileTabContent');
-      if (!content) return;
+      if (!content || !customerId) return;
       document.querySelectorAll('.profile-tabs .tab-button').forEach((tabButton) => tabButton.classList.toggle('active', tabButton.dataset.tab === tab));
       if (tab === 'prescriptions') {
         loadCustomerPrescriptions(customerId);
       } else if (tab === 'invoices') {
         loadCustomerInvoices(customerId);
       } else {
-        content.innerHTML = renderCustomerProfileOverview(customerState.customers.find((cust) => cust.id === customerId) || customer);
+        const currentCustomer = customerState.customers.find((cust) => cust.id === customerId) || customer;
+        content.innerHTML = renderCustomerProfileOverview(currentCustomer);
       }
     });
     body.dataset.listenerAttached = 'true';
   }
-  body.querySelector('.profile-tabs .tab-button')?.setAttribute('data-customer-id', customer.id);
   modal.classList.remove('hidden');
 };
 
@@ -400,8 +420,11 @@ const initCustomerPage = () => {
       document.getElementById('searchSuggestions').innerHTML = '';
       return;
     }
-    const results = customerState.customers.filter((cust) => [cust.name, cust.mobile, cust.id].some((field) => field.toLowerCase().includes(value))).slice(0, 5);
-    const suggestions = results.map((cust) => `<button type="button" data-id="${cust.id}">${cust.name} - ${formatPhone(cust.mobile)} - ${cust.lastVisitDate ? formatDate(cust.lastVisitDate) : 'No visit'}</button>`).join('');
+    const results = customerState.customers
+      .map(normalizeCustomerRecord)
+      .filter((cust) => [cust.name, cust.mobile, cust.id].some((field) => String(field || '').toLowerCase().includes(value)))
+      .slice(0, 5);
+    const suggestions = results.map((cust) => `<button type="button" data-id="${cust.id}">${cust.name} - ${cust.mobile ? formatPhone(cust.mobile) : 'No mobile'} - ${cust.lastVisitDate ? formatDate(cust.lastVisitDate) : 'No visit'}</button>`).join('');
     document.getElementById('searchSuggestions').innerHTML = suggestions || '<div class="search-empty">No results found.</div>';
   }), 300);
 
@@ -440,28 +463,6 @@ const initCustomerPage = () => {
     customerState.currentPage = Number(button.dataset.page);
     renderCustomerTable();
   });
-
-  const body = document.getElementById('customerViewBody');
-  if (body && !body.dataset.listenerAttached) {
-    body.addEventListener('click', (event) => {
-      const button = event.target.closest('button[data-tab]');
-      if (!button) return;
-      const tab = button.dataset.tab;
-      const customerId = button.dataset.customerId;
-      const content = document.getElementById('customerProfileTabContent');
-      if (!content || !customerId) return;
-      document.querySelectorAll('.profile-tabs .tab-button').forEach((tabButton) => tabButton.classList.toggle('active', tabButton.dataset.tab === tab));
-      if (tab === 'prescriptions') {
-        loadCustomerPrescriptions(customerId);
-      } else if (tab === 'invoices') {
-        loadCustomerInvoices(customerId);
-      } else {
-        const currentCustomer = customerState.customers.find((cust) => cust.id === customerId);
-        content.innerHTML = renderCustomerProfileOverview(currentCustomer || customerState.customers[0]);
-      }
-    });
-    body.dataset.listenerAttached = 'true';
-  }
 
   document.querySelectorAll('#customerTable th[data-sort]').forEach((header) => {
     header.addEventListener('click', () => {

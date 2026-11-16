@@ -27,7 +27,12 @@ const generatePrescriptionOptions = () => {
 const resetPrescriptionForm = () => {
   document.getElementById('prescriptionForm')?.reset();
   document.getElementById('prescriptionDate').value = getTodayISO();
-  document.getElementById('selectedCustomer').style.display = 'none';
+  const selectedCustomer = document.getElementById('selectedCustomer');
+  const customerAddress = document.getElementById('custAddress');
+  const historyList = document.getElementById('customerHistoryList');
+  if (selectedCustomer) selectedCustomer.style.display = 'none';
+  if (customerAddress) customerAddress.textContent = 'No address';
+  if (historyList) historyList.innerHTML = '';
   document.getElementById('selectedCustomerId').value = '';
   document.getElementById('customerSearch').value = '';
   document.getElementById('customerDropdown').innerHTML = '';
@@ -72,27 +77,80 @@ const copyRightToLeft = () => {
   showToast('Right eye values copied to left eye.', 'success');
 };
 
-const selectPrescriptionCustomer = (customer) => {
-  document.getElementById('selectedCustomerId').value = customer.id;
-  document.getElementById('custName').textContent = customer.name;
-  document.getElementById('custMobile').textContent = customer.mobile;
-  document.getElementById('selectedCustomer').style.display = 'block';
-  document.getElementById('customerSearch').value = customer.name;
-  document.getElementById('customerDropdown').style.display = 'none';
-  document.getElementById('customerDropdown').innerHTML = '';
+const renderCustomerPrescriptionHistory = (customerId) => {
+  const historyList = document.getElementById('customerHistoryList');
+  if (!historyList) return;
+
+  const customerPrescriptions = (getData(STORAGE_KEYS.prescriptions) || []).filter((prescription) => prescription.customerId === customerId)
+    .sort((left, right) => new Date(right.date || 0) - new Date(left.date || 0))
+    .slice(0, 5);
+
+  if (!customerPrescriptions.length) {
+    historyList.innerHTML = '<small>No previous prescriptions found.</small>';
+    return;
+  }
+
+  historyList.innerHTML = customerPrescriptions.map((prescription) => `
+    <div class="history-item">
+      <strong>${formatDate(prescription.date || '') || 'Date N/A'}</strong>
+      <span>${prescription.prescriptionId || 'Prescription'}</span>
+      <small>${prescription.lensType || 'Lens type not specified'}</small>
+    </div>
+  `).join('');
 };
+
+const selectPrescriptionCustomer = (customer) => {
+  if (!customer) return;
+
+  const selectedCustomer = document.getElementById('selectedCustomer');
+  const customerAddress = document.getElementById('custAddress');
+  const customerSearch = document.getElementById('customerSearch');
+  const dropdown = document.getElementById('customerDropdown');
+
+  document.getElementById('selectedCustomerId').value = customer.id;
+  document.getElementById('custName').textContent = customer.name || 'Unnamed Customer';
+  document.getElementById('custMobile').textContent = customer.mobile || 'No mobile';
+  if (customerAddress) {
+    customerAddress.textContent = customer.address || customer.location || 'No address';
+  }
+  if (selectedCustomer) selectedCustomer.style.display = 'block';
+  if (customerSearch) customerSearch.value = customer.name || '';
+  if (dropdown) {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+  }
+
+  renderCustomerPrescriptionHistory(customer.id);
+};
+
+globalThis.selectPrescriptionCustomer = selectPrescriptionCustomer;
+
+const getPrescriptionCustomerMatches = (customers = [], query = '') => {
+  const normalized = String(query || '').trim().toLowerCase();
+  const mapped = (customers || []).map((customer) => ({
+    ...customer,
+    name: customer.name || 'Unnamed Customer',
+    mobile: customer.mobile || 'No mobile',
+    id: customer.id || ''
+  })).sort((left, right) => left.name.localeCompare(right.name));
+
+  if (!normalized) return mapped;
+
+  return mapped.filter((customer) => {
+    const haystack = `${customer.name} ${customer.mobile} ${customer.id}`.toLowerCase();
+    return haystack.includes(normalized);
+  });
+};
+
+globalThis.getPrescriptionCustomerMatches = getPrescriptionCustomerMatches;
 
 const searchPrescriptionCustomers = (query) => {
   const customers = getData(STORAGE_KEYS.customers) || [];
-  const normalized = query.toLowerCase().trim();
-  const results = normalized
-    ? customers.filter((customer) => {
-        const haystack = `${customer.name} ${customer.mobile} ${customer.id}`.toLowerCase();
-        return haystack.includes(normalized);
-      }).slice(0, 6)
-    : customers.slice(0, 6);
+  const results = getPrescriptionCustomerMatches(customers, query);
 
   const dropdown = document.getElementById('customerDropdown');
+  if (!dropdown) return;
+
   dropdown.innerHTML = '';
   if (results.length === 0) {
     dropdown.innerHTML = '<div class="dropdown-item">No customers found</div>';
@@ -111,10 +169,75 @@ const searchPrescriptionCustomers = (query) => {
   dropdown.style.display = 'block';
 };
 
+const toggleQuickCustomerAdd = () => {
+  const quickAddForm = document.getElementById('customerQuickAddForm');
+  if (!quickAddForm) return;
+
+  const isHidden = quickAddForm.style.display === 'none';
+  quickAddForm.style.display = isHidden ? 'block' : 'none';
+  quickAddForm.classList.toggle('hidden', !isHidden);
+
+  if (isHidden) {
+    setTimeout(() => {
+      document.getElementById('quickCustomerName')?.focus();
+    }, 50);
+  }
+};
+
+const saveQuickCustomerAddition = () => {
+  const nameInput = document.getElementById('quickCustomerName');
+  const mobileInput = document.getElementById('quickCustomerMobile');
+  const addressInput = document.getElementById('quickCustomerAddress');
+  const customerName = String(nameInput?.value || '').trim();
+  const customerMobile = String(mobileInput?.value || '').replace(/\D+/g, '');
+  const customerAddress = String(addressInput?.value || '').trim();
+
+  if (!customerName && !customerMobile && !customerAddress) {
+    showToast('Enter a customer name or mobile to save.', 'error');
+    return;
+  }
+
+  const customers = getData(STORAGE_KEYS.customers) || [];
+  const customer = {
+    id: generateCustomerId(customers),
+    name: customerName || 'Unnamed Customer',
+    mobile: customerMobile,
+    address: customerAddress,
+    location: customerAddress,
+    alternateMobile: '',
+    dob: '',
+    email: '',
+    gender: '',
+    registrationDate: formatDate(new Date()),
+    visits: [],
+    totalVisits: 0,
+    lastVisitDate: '',
+    notes: '',
+    profileImage: ''
+  };
+
+  saveData(STORAGE_KEYS.customers, [...customers, customer]);
+  selectPrescriptionCustomer(customer);
+  if (nameInput) nameInput.value = '';
+  if (mobileInput) mobileInput.value = '';
+  if (addressInput) addressInput.value = '';
+  const quickAddForm = document.getElementById('customerQuickAddForm');
+  if (quickAddForm) {
+    quickAddForm.style.display = 'none';
+    quickAddForm.classList.add('hidden');
+  }
+  showToast('Customer saved and added to the prescription list.', 'success');
+  searchPrescriptionCustomers('');
+};
+
 const bindPrescriptionCustomerSearch = () => {
   const input = document.getElementById('customerSearch');
   const dropdown = document.getElementById('customerDropdown');
   if (!input || !dropdown) return;
+
+  const refreshCustomersFromStore = () => {
+    searchPrescriptionCustomers(input.value);
+  };
 
   input.addEventListener('input', (event) => {
     searchPrescriptionCustomers(event.target.value);
@@ -136,7 +259,7 @@ const bindPrescriptionCustomerSearch = () => {
     const item = event.target.closest('.dropdown-item');
     if (!item?.dataset.customerId) return;
     event.preventDefault();
-    const customer = getData(STORAGE_KEYS.customers).find((entry) => entry.id === item.dataset.customerId);
+    const customer = (getData(STORAGE_KEYS.customers) || []).find((entry) => entry.id === item.dataset.customerId);
     if (customer) selectPrescriptionCustomer(customer);
   });
 
@@ -144,7 +267,7 @@ const bindPrescriptionCustomerSearch = () => {
     const item = event.target.closest('.dropdown-item');
     if (!item?.dataset.customerId) return;
     event.preventDefault();
-    const customer = getData(STORAGE_KEYS.customers).find((entry) => entry.id === item.dataset.customerId);
+    const customer = (getData(STORAGE_KEYS.customers) || []).find((entry) => entry.id === item.dataset.customerId);
     if (customer) selectPrescriptionCustomer(customer);
   });
 
@@ -154,6 +277,12 @@ const bindPrescriptionCustomerSearch = () => {
       dropdown.innerHTML = '';
     }
   });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEYS.customers) refreshCustomersFromStore();
+  });
+
+  window.addEventListener('customers:updated', refreshCustomersFromStore);
 };
 
 const validatePrescriptionForm = () => {
@@ -342,6 +471,9 @@ const initPrescriptionPage = () => {
   document.getElementById('openPrescriptionForm').addEventListener('click', openPrescriptionModal);
   document.getElementById('closePrescriptionModal').addEventListener('click', closePrescriptionModal);
   document.getElementById('cancelPrescriptionForm').addEventListener('click', closePrescriptionModal);
+  document.getElementById('quickAddCustomerButton')?.addEventListener('click', toggleQuickCustomerAdd);
+  document.getElementById('cancelQuickCustomerAdd')?.addEventListener('click', toggleQuickCustomerAdd);
+  document.getElementById('saveQuickCustomerAdd')?.addEventListener('click', saveQuickCustomerAddition);
   document.getElementById('prescriptionForm').addEventListener('submit', savePrescription);
   document.getElementById('copyRightToLeft').addEventListener('click', copyRightToLeft);
   document.getElementById('lensType').addEventListener('change', toggleNearVision);

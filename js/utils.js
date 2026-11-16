@@ -4,7 +4,8 @@ const STORAGE_KEYS = {
   invoices: 'invoices',
   appSettings: 'appSettings',
   session: 'session',
-  activityLog: 'activityLog'
+  activityLog: 'activityLog',
+  schemaMeta: 'schema_meta'
 };
 
 const getLocalData = (key) => {
@@ -60,6 +61,59 @@ const formatDateInput = (dateValue) => {
 const formatCurrency = (value) => {
   const number = parseFloat(value) || 0;
   return number.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+};
+
+const toSafeOptionalString = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+};
+
+const toSafeOptionalNumber = (value) => {
+  if (value === null || value === undefined || value === '') return 0;
+  const sanitized = Number(String(value).trim());
+  return Number.isFinite(sanitized) ? sanitized : 0;
+};
+
+const calculateOrderTotals = (framePrice = 0, lensPrice = 0, discount = 0, amountPaid = 0) => {
+  const frame = toSafeOptionalNumber(framePrice);
+  const lens = toSafeOptionalNumber(lensPrice);
+  const discountAmount = toSafeOptionalNumber(discount);
+  const paid = toSafeOptionalNumber(amountPaid);
+  const total = Number((frame + lens - discountAmount).toFixed(2));
+  const balance = Number((total - paid).toFixed(2));
+
+  return {
+    total,
+    balance,
+    amountPaid: paid,
+    discount: discountAmount,
+    framePrice: frame,
+    lensPrice: lens
+  };
+};
+
+const buildCustomerEntry = (customer = {}) => {
+  const generatedId = customer.id || `CUST-${Date.now()}`;
+  const name = toSafeOptionalString(customer.name) || 'Unnamed Customer';
+  const mobile = String(customer.mobile ?? '').replace(/\D+/g, '');
+
+  return {
+    id: generatedId,
+    name,
+    mobile,
+    address: toSafeOptionalString(customer.address),
+    alternateMobile: toSafeOptionalString(customer.alternateMobile),
+    location: toSafeOptionalString(customer.location),
+    dob: toSafeOptionalString(customer.dob),
+    email: toSafeOptionalString(customer.email),
+    gender: toSafeOptionalString(customer.gender),
+    registrationDate: toSafeOptionalString(customer.registrationDate) || formatDate(new Date()),
+    visits: Array.isArray(customer.visits) ? customer.visits : [],
+    totalVisits: Number(customer.totalVisits) || 0,
+    lastVisitDate: toSafeOptionalString(customer.lastVisitDate),
+    notes: toSafeOptionalString(customer.notes),
+    profileImage: toSafeOptionalString(customer.profileImage)
+  };
 };
 
 const validateMobile = (value) => /^[6-9]\d{9}$/.test(value);
@@ -140,6 +194,22 @@ const showToast = (message, type = 'success', duration = 3600) => {
   }, duration);
 };
 
+const DEFAULT_ADMIN_CREDENTIALS = {
+  username: 'admin@riddhichashma',
+  password: 'riddhi@2024'
+};
+
+const resolveAdminCredentials = (settings = getSettings()) => {
+  const safeSettings = settings && typeof settings === 'object' && !Array.isArray(settings) ? settings : {};
+  const username = typeof safeSettings.adminUsername === 'string' ? safeSettings.adminUsername.trim() : '';
+  const password = typeof safeSettings.adminPassword === 'string' ? safeSettings.adminPassword.trim() : '';
+
+  return {
+    username: username || DEFAULT_ADMIN_CREDENTIALS.username,
+    password: password || DEFAULT_ADMIN_CREDENTIALS.password
+  };
+};
+
 const safeParseJSON = (value) => {
   try {
     return JSON.parse(value);
@@ -158,15 +228,15 @@ const debounce = (fn, delay = 300) => {
 
 const getSettings = () => {
   const settings = getLocalData(STORAGE_KEYS.appSettings);
-  return settings || {
+  const defaultSettings = {
     shopName: 'RIDDHI CHASHMA GHAR',
     address: '',
     contact: '',
     email: '',
     gst: '',
     logo: '',
-    adminUsername: 'admin@riddhichashma',
-    adminPassword: 'riddhi@2024',
+    adminUsername: DEFAULT_ADMIN_CREDENTIALS.username,
+    adminPassword: DEFAULT_ADMIN_CREDENTIALS.password,
     sessionTimeout: 30,
     invoicePrefix: 'INV-',
     invoiceStartNumber: 1,
@@ -179,12 +249,41 @@ const getSettings = () => {
     fontSize: 'medium',
     animationsEnabled: true
   };
+
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    return defaultSettings;
+  }
+
+  return {
+    ...defaultSettings,
+    ...settings,
+    adminUsername: typeof settings.adminUsername === 'string' && settings.adminUsername.trim() ? settings.adminUsername.trim() : defaultSettings.adminUsername,
+    adminPassword: typeof settings.adminPassword === 'string' && settings.adminPassword.trim() ? settings.adminPassword.trim() : defaultSettings.adminPassword
+  };
 };
+
+if (typeof globalThis !== 'undefined') {
+  globalThis.DEFAULT_ADMIN_CREDENTIALS = DEFAULT_ADMIN_CREDENTIALS;
+  globalThis.resolveAdminCredentials = resolveAdminCredentials;
+  globalThis.calculateOrderTotals = calculateOrderTotals;
+  globalThis.buildCustomerEntry = buildCustomerEntry;
+}
 
 const saveSettings = (settings) => setLocalData(STORAGE_KEYS.appSettings, settings);
 
 const getSession = () => getLocalData(STORAGE_KEYS.session) || { isLoggedIn: false };
 const saveSession = (session) => setLocalData(STORAGE_KEYS.session, session);
+
+const getSchemaMeta = () => {
+  const meta = getLocalData(STORAGE_KEYS.schemaMeta) || {};
+  return {
+    schema_version: Number(meta.schema_version || 0),
+    migrated_at: meta.migrated_at || null,
+    last_migration: meta.last_migration || null
+  };
+};
+
+const saveSchemaMeta = (meta = {}) => setLocalData(STORAGE_KEYS.schemaMeta, meta);
 
 const getTodayISO = () => {
   const now = new Date();

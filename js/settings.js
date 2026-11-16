@@ -12,11 +12,6 @@ const applySettingsToForm = () => {
   document.getElementById('currentUsername').value = settings.adminUsername || '';
   document.getElementById('logoutToggle').checked = settings.sessionTimeout > 0;
   document.getElementById('sessionTimeout').value = settings.sessionTimeout || 30;
-  document.getElementById('invoicePrefix').value = settings.invoicePrefix || 'INV-';
-  document.getElementById('invoiceStartNumber').value = settings.invoiceStartNumber || 1;
-  document.getElementById('defaultGstRate').value = settings.defaultGST || 18;
-  document.getElementById('termsConditions').value = settings.termsConditions || '';
-  document.getElementById('invoiceFooter').value = settings.invoiceFooter || '';
   document.getElementById('reminderToggle').checked = settings.reminderEnabled;
   document.getElementById('reminderTemplate').value = settings.reminderTemplate || ''; 
   document.getElementById('whatsappNumber').value = settings.contact || '';
@@ -60,18 +55,6 @@ const saveAdminAccount = (event) => {
   saveSettings(settings);
   showToast('Admin account updated.', 'success');
   applyThemeSettings();
-};
-
-const saveInvoiceSettings = (event) => {
-  event.preventDefault();
-  const settings = getSettings();
-  settings.invoicePrefix = document.getElementById('invoicePrefix').value.trim() || 'INV-';
-  settings.invoiceStartNumber = Number(document.getElementById('invoiceStartNumber').value) || 1;
-  settings.defaultGST = Number(document.getElementById('defaultGstRate').value) || 18;
-  settings.termsConditions = document.getElementById('termsConditions').value.trim();
-  settings.invoiceFooter = document.getElementById('invoiceFooter').value.trim();
-  saveSettings(settings);
-  showToast('Invoice settings saved.', 'success');
 };
 
 const saveNotificationSettings = (event) => {
@@ -151,16 +134,6 @@ const initDataManagement = () => {
     }));
     exportCSV(customers, 'customer-list.csv');
   });
-  document.getElementById('exportInvoiceCsv').addEventListener('click', () => {
-    const invoices = getData(STORAGE_KEYS.invoices).map((invoice) => ({
-      InvoiceNumber: invoice.invoiceNumber,
-      Customer: invoice.customerName,
-      Date: invoice.date,
-      TotalAmount: invoice.totalAmount,
-      Status: invoice.status
-    }));
-    exportCSV(invoices, 'invoice-list.csv');
-  });
   document.getElementById('clearDataButton').addEventListener('click', () => {
     openConfirm('Type DELETE to confirm clearing all data.', () => {
       localStorage.clear();
@@ -183,7 +156,6 @@ const initSettingsPage = () => {
   });
   document.getElementById('shopDetailsForm').addEventListener('submit', saveShopDetails);
   document.getElementById('adminAccountForm').addEventListener('submit', saveAdminAccount);
-  document.getElementById('invoiceSettingsForm').addEventListener('submit', saveInvoiceSettings);
   document.getElementById('notificationSettingsForm').addEventListener('submit', saveNotificationSettings);
   document.getElementById('uiPreferencesForm').addEventListener('submit', saveUiPreferences);
   document.getElementById('shopLogo').addEventListener('change', handleLogoUpload);

@@ -39,7 +39,6 @@
         <li><a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></li>
         <li><a href="customers.html"><span class="nav-icon">👤</span> Customer Management</a></li>
         <li><a href="prescriptions.html"><span class="nav-icon">📄</span> Prescription Records</a></li>
-        <li><a href="billing.html"><span class="nav-icon">🧾</span> Billing & Invoices</a></li>
         <li><a href="analytics.html"><span class="nav-icon">📊</span> Analytics & Reports</a></li>
         <li><a href="settings.html" class="active"><span class="nav-icon">⚙️</span> Settings</a></li>
         <li><button class="nav-button" id="logoutButton"><span class="nav-icon">🚪</span> Logout</button></li>
@@ -49,14 +48,13 @@
       <section class="page-header">
         <div>
           <h2>Settings</h2>
-          <p>Configure shop details, account, invoices, notifications and data management.</p>
+          <p>Configure shop details, account, notifications and data management.</p>
         </div>
       </section>
       <section class="tabs-panel">
         <nav class="tabs" id="settingsTabs" aria-label="Settings tabs">
           <button class="tab-button active" data-tab="shopDetails">Shop Details</button>
           <button class="tab-button" data-tab="adminAccount">Admin Account</button>
-          <button class="tab-button" data-tab="invoiceSettings">Invoice Settings</button>
           <button class="tab-button" data-tab="notifications">Notifications</button>
           <button class="tab-button" data-tab="dataManagement">Data Management</button>
           <button class="tab-button" data-tab="uiPreferences">UI Preferences</button>
@@ -140,40 +138,6 @@
             </div>
           </section>
         </div>
-        <div class="tab-content" id="invoiceSettings">
-          <form id="invoiceSettingsForm" novalidate>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="invoicePrefix">Invoice Prefix</label>
-                <input id="invoicePrefix" type="text" />
-              </div>
-              <div class="form-group">
-                <label for="invoiceStartNumber">Starting Invoice Number</label>
-                <input id="invoiceStartNumber" type="number" min="1" />
-              </div>
-              <div class="form-group">
-                <label for="defaultGstRate">Default GST Rate</label>
-                <select id="defaultGstRate">
-                  <option value="0">0%</option>
-                  <option value="5">5%</option>
-                  <option value="12">12%</option>
-                  <option value="18">18%</option>
-                </select>
-              </div>
-              <div class="form-group full-width">
-                <label for="termsConditions">Terms & Conditions</label>
-                <textarea id="termsConditions" rows="3"></textarea>
-              </div>
-              <div class="form-group full-width">
-                <label for="invoiceFooter">Invoice Footer Text</label>
-                <input id="invoiceFooter" type="text" />
-              </div>
-            </div>
-            <div class="modal-actions">
-              <button type="submit" class="primary-btn">Save Invoice Settings</button>
-            </div>
-          </form>
-        </div>
         <div class="tab-content" id="notifications">
           <form id="notificationSettingsForm" novalidate>
             <div class="form-grid">
@@ -206,7 +170,6 @@
           </div>
           <div class="panel-card">
             <button class="secondary-btn" id="exportCustomerCsv">Export Customer List</button>
-            <button class="secondary-btn" id="exportInvoiceCsv">Export Invoice List</button>
           </div>
           <div class="panel-card danger-panel">
             <h3>Clear All Data</h3>
@@ -263,6 +226,7 @@
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
   <script src="js/utils.js" defer></script>
   <script src="js/storage.js" defer></script>
+  <script src="js/migration-core.js" defer></script>
   <script src="js/auth.js" defer></script>
   <script src="js/notifications.js" defer></script>
   <script src="js/settings.js" defer></script>

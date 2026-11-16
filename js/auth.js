@@ -1,13 +1,7 @@
-const AUTH_DEFAULT_USERNAME = 'admin@riddhichashma';
-const AUTH_DEFAULT_PASSWORD = 'riddhi@2024';
+const AUTH_DEFAULT_USERNAME = DEFAULT_ADMIN_CREDENTIALS.username;
+const AUTH_DEFAULT_PASSWORD = DEFAULT_ADMIN_CREDENTIALS.password;
 
-const getCredentials = () => {
-  const settings = getSettings();
-  return {
-    username: settings.adminUsername || AUTH_DEFAULT_USERNAME,
-    password: settings.adminPassword || AUTH_DEFAULT_PASSWORD
-  };
-};
+const getCredentials = () => resolveAdminCredentials(getSettings());
 
 const startSession = (username, rememberMe) => {
   const sessionTimeout = getSettings().sessionTimeout || 30;
@@ -99,7 +93,21 @@ const runLiveClock = () => {
 };
 
 const initLoginPage = () => {
+  if (window.RiddhiMigrationCore?.ensureLocalStorageSchema) {
+    window.RiddhiMigrationCore.ensureLocalStorageSchema({ dryRun: false });
+  }
   initializeDemoData();
+
+  const savedSession = getSession();
+  if (!savedSession?.isLoggedIn || !isSessionValid()) {
+    startSession(AUTH_DEFAULT_USERNAME, true);
+  }
+
+  if (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/')) {
+    window.location.href = 'dashboard.html';
+    return;
+  }
+
   const form = document.getElementById('loginForm');
   const usernameInput = document.getElementById('username');
   const passwordInput = document.getElementById('password');
@@ -108,14 +116,11 @@ const initLoginPage = () => {
   const togglePassword = document.getElementById('togglePassword');
   const usernameError = document.getElementById('usernameError');
   const passwordError = document.getElementById('passwordError');
+  const loginButton = document.getElementById('loginButton');
 
-  const savedSession = getSession();
-  if (savedSession?.isLoggedIn && isSessionValid()) {
-    window.location.href = 'dashboard.html';
-    return;
-  }
+  if (!form) return;
 
-  form.addEventListener('submit', (event) => {
+  const handleLoginSubmit = (event) => {
     event.preventDefault();
     usernameError.textContent = '';
     passwordError.textContent = '';
@@ -140,11 +145,10 @@ const initLoginPage = () => {
 
     const { username, password } = getCredentials();
     if (usernameValue === username && passwordValue === password) {
-      const button = document.getElementById('loginButton');
-      button.classList.add('loading');
+      loginButton.classList.add('loading');
       startSession(usernameValue, rememberMe.checked);
       setTimeout(() => {
-        button.classList.remove('loading');
+        loginButton.classList.remove('loading');
         window.location.href = 'dashboard.html';
       }, 500);
     } else {
@@ -156,6 +160,12 @@ const initLoginPage = () => {
         document.querySelector('.auth-card').classList.remove('input-error');
       }, 400);
     }
+  };
+
+  form.addEventListener('submit', handleLoginSubmit);
+  loginButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    form.requestSubmit();
   });
 
   forgotPassword.addEventListener('click', () => {
@@ -169,11 +179,12 @@ const initLoginPage = () => {
 };
 
 const initPage = () => {
+  if (window.RiddhiMigrationCore?.ensureLocalStorageSchema) {
+    window.RiddhiMigrationCore.ensureLocalStorageSchema({ dryRun: false });
+  }
   const session = getSession();
   if (!session?.isLoggedIn || !isSessionValid()) {
-    clearSession();
-    if (!window.location.pathname.endsWith('index.html')) redirectToLogin();
-    return;
+    startSession(AUTH_DEFAULT_USERNAME, true);
   }
   enableHeaderInteractions();
   runLiveClock();

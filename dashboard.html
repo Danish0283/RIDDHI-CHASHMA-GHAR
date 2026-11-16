@@ -39,7 +39,6 @@
         <li><a href="dashboard.html" class="active"><span class="nav-icon">🏠</span> Dashboard</a></li>
         <li><a href="customers.html"><span class="nav-icon">👤</span> Customer Management</a></li>
         <li><a href="prescriptions.html"><span class="nav-icon">📄</span> Prescription Records</a></li>
-        <li><a href="billing.html"><span class="nav-icon">🧾</span> Billing & Invoices</a></li>
         <li><a href="analytics.html"><span class="nav-icon">📊</span> Analytics & Reports</a></li>
         <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
         <li><button class="nav-button" id="logoutButton"><span class="nav-icon">🚪</span> Logout</button></li>
@@ -51,11 +50,31 @@
           <h2>Dashboard</h2>
           <p>Welcome back, administrator. Review activity and reminders for your optical shop.</p>
         </div>
-        <button class="secondary-btn" id="fabButton" aria-label="Quick actions">+ Quick Actions</button>
+        <button class="secondary-btn" id="newEntryButton" aria-label="New Entry">+ New Entry</button>
+      </section>
+      <section class="dashboard-hero" aria-label="Shop overview">
+        <div class="hero-content">
+          <span class="hero-tag">Today at a glance</span>
+          <h3>Keep prescriptions, payments and follow-ups moving.</h3>
+          <p>Everything your optical shop needs, designed for quick mobile checks and faster customer service.</p>
+        </div>
+        <div class="hero-stats" aria-label="Quick summary values">
+          <div class="mini-stat">
+            <span>Today</span>
+            <strong id="todaySalesValue">₹0</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Booked</span>
+            <strong id="todayBookingsValue">0</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Pending</span>
+            <strong id="pendingBalanceValue">₹0</strong>
+          </div>
+        </div>
       </section>
       <section class="fab-menu hidden" id="fabMenu" aria-label="Quick action buttons">
         <button data-target="customers.html">New Customer</button>
-        <button data-target="billing.html">New Invoice</button>
         <button data-target="prescriptions.html">New Prescription</button>
       </section>
       <section class="summary-grid" aria-label="Dashboard summary cards">
@@ -80,9 +99,238 @@
           <p>Pending Follow-ups</p>
         </article>
       </section>
+      <section class="quick-order-panel" aria-label="New entry form">
+        <div class="panel-header">
+          <h3>New Entry</h3>
+          <span class="badge soft">One page</span>
+        </div>
+        <form id="quickOrderForm" class="quick-order-form" novalidate>
+          <div class="customer-select-wrap">
+            <div class="form-grid compact-grid">
+              <div class="form-group form-group-wide">
+                <label for="quickCustomerName">Customer Name</label>
+                <input id="quickCustomerName" name="customerName" type="text" placeholder="Type name or mobile to find existing customer" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label for="quickCustomerMobile">Mobile Number</label>
+                <input id="quickCustomerMobile" name="mobile" type="tel" placeholder="Optional" autocomplete="tel" />
+              </div>
+            </div>
+            <div id="customerSuggestions" class="customer-suggestions hidden" aria-live="polite"></div>
+            <div id="customerHistorySummary" class="customer-history-summary hidden" aria-live="polite"></div>
+          </div>
+
+          <div class="form-section">
+            <h4>Customer Details</h4>
+            <div class="form-grid compact-grid">
+              <div class="form-group">
+                <label for="customerAddress">Address</label>
+                <input id="customerAddress" name="address" type="text" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="customerDoctorName">Doctor Name</label>
+                <input id="customerDoctorName" name="doctorName" type="text" placeholder="Optional" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Optical Prescription</h4>
+            <div class="eye-grid">
+              <div class="eye-panel">
+                <h5>Right Eye (OD)</h5>
+                <div class="prescription-grid">
+                  <div class="form-group">
+                    <label for="odDistanceSPH">Distance SPH</label>
+                    <input id="odDistanceSPH" name="odDistanceSPH" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="odDistanceCYL">Distance CYL</label>
+                    <input id="odDistanceCYL" name="odDistanceCYL" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="odDistanceAxis">Distance Axis</label>
+                    <input id="odDistanceAxis" name="odDistanceAxis" type="number" min="0" max="180" step="1" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="odDistanceVA">Distance VA</label>
+                    <input id="odDistanceVA" name="odDistanceVA" type="text" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="odNearSPH">Near SPH</label>
+                    <input id="odNearSPH" name="odNearSPH" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="odNearCYL">Near CYL</label>
+                    <input id="odNearCYL" name="odNearCYL" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="odNearAxis">Near Axis</label>
+                    <input id="odNearAxis" name="odNearAxis" type="number" min="0" max="180" step="1" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="odNearVA">Near VA</label>
+                    <input id="odNearVA" name="odNearVA" type="text" placeholder="Optional" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="eye-panel">
+                <h5>Left Eye (OS)</h5>
+                <div class="prescription-grid">
+                  <div class="form-group">
+                    <label for="osDistanceSPH">Distance SPH</label>
+                    <input id="osDistanceSPH" name="osDistanceSPH" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="osDistanceCYL">Distance CYL</label>
+                    <input id="osDistanceCYL" name="osDistanceCYL" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="osDistanceAxis">Distance Axis</label>
+                    <input id="osDistanceAxis" name="osDistanceAxis" type="number" min="0" max="180" step="1" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="osDistanceVA">Distance VA</label>
+                    <input id="osDistanceVA" name="osDistanceVA" type="text" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="osNearSPH">Near SPH</label>
+                    <input id="osNearSPH" name="osNearSPH" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="osNearCYL">Near CYL</label>
+                    <input id="osNearCYL" name="osNearCYL" type="number" step="0.25" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="osNearAxis">Near Axis</label>
+                    <input id="osNearAxis" name="osNearAxis" type="number" min="0" max="180" step="1" placeholder="Optional" />
+                  </div>
+                  <div class="form-group">
+                    <label for="osNearVA">Near VA</label>
+                    <input id="osNearVA" name="osNearVA" type="text" placeholder="Optional" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid compact-grid">
+              <div class="form-group">
+                <label for="prescriptionAdd">ADD</label>
+                <input id="prescriptionAdd" name="add" type="number" step="0.25" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="prescriptionPd">PD</label>
+                <input id="prescriptionPd" name="pd" type="number" step="0.1" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="rightPd">Right PD</label>
+                <input id="rightPd" name="rightPd" type="number" step="0.1" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="leftPd">Left PD</label>
+                <input id="leftPd" name="leftPd" type="number" step="0.1" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="oldGlassesNumber">Old Glasses Number</label>
+                <input id="oldGlassesNumber" name="oldGlassesNumber" type="text" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="prescriptionDate">Prescription Date</label>
+                <input id="prescriptionDate" name="prescriptionDate" type="date" />
+              </div>
+              <div class="form-group">
+                <label for="nextCheckupDate">Next Checkup Date</label>
+                <input id="nextCheckupDate" name="nextCheckupDate" type="date" />
+              </div>
+              <div class="form-group">
+                <label for="prescriptionRemarks">Remarks</label>
+                <textarea id="prescriptionRemarks" name="remarks" rows="3" placeholder="Optional notes"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Frame and Lens</h4>
+            <div class="form-grid compact-grid">
+              <div class="form-group">
+                <label for="frameName">Frame Name / Brand</label>
+                <input id="frameName" name="frameName" type="text" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="frameDescription">Frame Description</label>
+                <input id="frameDescription" name="frameDescription" type="text" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="framePrice">Frame Price</label>
+                <input id="framePrice" name="framePrice" type="number" min="0" step="0.01" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="lensBrand">Lens Brand</label>
+                <input id="lensBrand" name="lensBrand" type="text" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="lensType">Lens Type</label>
+                <input id="lensType" name="lensType" type="text" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="lensDescription">Lens Description</label>
+                <input id="lensDescription" name="lensDescription" type="text" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="lensPrice">Lens Price</label>
+                <input id="lensPrice" name="lensPrice" type="number" min="0" step="0.01" placeholder="Optional" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Bill and Payment</h4>
+            <div class="form-grid compact-grid">
+              <div class="form-group">
+                <label for="discount">Discount</label>
+                <input id="discount" name="discount" type="number" min="0" step="0.01" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="totalAmount">Total Amount</label>
+                <input id="totalAmount" name="totalAmount" type="text" placeholder="Auto-calculated" readonly />
+              </div>
+              <div class="form-group">
+                <label for="amountReceived">Amount Received</label>
+                <input id="amountReceived" name="amountReceived" type="number" min="0" step="0.01" placeholder="Optional" />
+              </div>
+              <div class="form-group">
+                <label for="paymentMethod">Payment Method</label>
+                <select id="paymentMethod" name="paymentMethod">
+                  <option value="">Not specified</option>
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Card">Card</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="paymentDate">Payment Date</label>
+                <input id="paymentDate" name="paymentDate" type="date" />
+              </div>
+              <div class="form-group">
+                <label for="remainingBalance">Remaining Balance</label>
+                <input id="remainingBalance" name="remainingBalance" type="text" placeholder="Auto-calculated" readonly />
+              </div>
+            </div>
+          </div>
+
+          <div id="formStatus" class="form-status" aria-live="polite"></div>
+
+          <div class="form-actions mobile-stack">
+            <button type="submit" class="primary-btn" id="saveEntryButton">Save All</button>
+            <button type="button" class="secondary-btn" id="clearEntryButton">Clear</button>
+            <button type="button" class="secondary-btn hidden" id="addAnotherButton">Add Another</button>
+          </div>
+        </form>
+      </section>
       <section class="quick-actions" aria-label="Quick action buttons">
         <button class="primary-btn" data-target="customers.html">Add New Customer</button>
-        <button class="info-btn" data-target="billing.html">Create Invoice</button>
         <button class="secondary-btn" data-target="prescriptions.html">New Prescription</button>
       </section>
       <section class="dashboard-grid">
@@ -103,8 +351,10 @@
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
   <script src="js/utils.js" defer></script>
   <script src="js/storage.js" defer></script>
+  <script src="js/migration-core.js" defer></script>
   <script src="js/auth.js" defer></script>
   <script src="js/notifications.js" defer></script>
   <script src="js/analytics.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
 </body>
 </html>

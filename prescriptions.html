@@ -39,7 +39,6 @@
         <li><a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></li>
         <li><a href="customers.html"><span class="nav-icon">👤</span> Customer Management</a></li>
         <li><a href="prescriptions.html" class="active"><span class="nav-icon">📄</span> Prescription Records</a></li>
-        <li><a href="billing.html"><span class="nav-icon">🧾</span> Billing & Invoices</a></li>
         <li><a href="analytics.html"><span class="nav-icon">📊</span> Analytics & Reports</a></li>
         <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
         <li><button class="nav-button" id="logoutButton"><span class="nav-icon">🚪</span> Logout</button></li>
@@ -90,15 +89,40 @@
           <div class="form-section">
             <h3>Customer Details</h3>
             <div class="form-group">
-              <label for="customerSearch">Select Customer *</label>
+              <div class="inline-action-row">
+                <label for="customerSearch">Select Customer *</label>
+                <button type="button" class="secondary-btn small" id="quickAddCustomerButton">+ Add Customer</button>
+              </div>
               <input type="text" id="customerSearch" placeholder="Search by name, mobile or customer ID..." class="search-input" autocomplete="off" />
               <div id="customerDropdown" class="search-dropdown"></div>
               <div id="selectedCustomer" class="selected-customer-info" style="display:none;">
                 <p><strong>Name:</strong> <span id="custName"></span></p>
                 <p><strong>Mobile:</strong> <span id="custMobile"></span></p>
+                <p><strong>Address:</strong> <span id="custAddress">No address</span></p>
                 <input type="hidden" id="selectedCustomerId" />
               </div>
+              <div id="customerHistoryList" class="history-list"></div>
               <span class="field-error" id="prescriptionCustomerError" role="alert"></span>
+            </div>
+            <div id="customerQuickAddForm" class="customer-quick-add hidden" style="display:none;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="quickCustomerName">Customer Name</label>
+                  <input id="quickCustomerName" type="text" placeholder="Enter name" />
+                </div>
+                <div class="form-group">
+                  <label for="quickCustomerMobile">Mobile</label>
+                  <input id="quickCustomerMobile" type="tel" placeholder="10-digit mobile" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="quickCustomerAddress">Address</label>
+                <input id="quickCustomerAddress" type="text" placeholder="Customer address" />
+              </div>
+              <div class="modal-actions compact-actions">
+                <button type="button" class="secondary-btn small" id="cancelQuickCustomerAdd">Cancel</button>
+                <button type="button" class="primary-btn small" id="saveQuickCustomerAdd">Save Customer</button>
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -343,6 +367,7 @@
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
   <script src="js/utils.js" defer></script>
   <script src="js/storage.js" defer></script>
+  <script src="js/migration-core.js" defer></script>
   <script src="js/auth.js" defer></script>
   <script src="js/prescriptions.js" defer></script>
 </body>

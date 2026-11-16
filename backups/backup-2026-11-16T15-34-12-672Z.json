@@ -1,0 +1,13 @@
+{
+  "schema": {
+    "schema_version": 0
+  },
+  "customers": [],
+  "prescriptions": [],
+  "invoices": [],
+  "appSettings": {},
+  "session": {
+    "isLoggedIn": false
+  },
+  "activityLog": []
+}
